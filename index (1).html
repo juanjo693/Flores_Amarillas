@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Mi Regalo Para Ti 🌻✨</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Montserrat:wght@300;500;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: radial-gradient(circle at center, #1b0c30 0%, #0d0618 60%, #030108 100%);
+      font-family: 'Montserrat', sans-serif;
+      color: #fff;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #welcome-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at center, #2d103d 0%, #0f051a 100%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      transition: opacity 1s ease, visibility 1s ease;
+    }
+
+    #welcome-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .welcome-title {
+      font-family: 'Caveat', cursive;
+      font-size: 3.2rem;
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+      margin-bottom: 30px;
+      line-height: 1.2;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #111;
+      border: none;
+      padding: 18px 40px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .btn-start:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 45px rgba(255, 215, 0, 1);
+    }
+
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+
+    .btn-letter {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: linear-gradient(135deg, #ffd700, #ff8c00);
+      color: #111;
+      border: none;
+      padding: 14px 32px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn-letter:hover {
+      transform: translateX(-50%) translateY(-3px) scale(1.05);
+      box-shadow: 0 0 35px rgba(255, 215, 0, 0.9);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(3, 2, 8, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .letter-card {
+      background: linear-gradient(145deg, #fffbe6, #fff3b3);
+      color: #2c2200;
+      padding: 35px 30px;
+      border-radius: 22px;
+      width: 90%;
+      max-width: 460px;
+      text-align: center;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.7);
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.3s ease;
+      border: 2px solid #ffd700;
+    }
+
+    .modal-overlay.active .letter-card {
+      transform: translateY(0) scale(1);
+    }
+
+    .letter-card h2 {
+      font-family: 'Caveat', cursive;
+      font-size: 2.9rem;
+      color: #d48800;
+      margin-bottom: 12px;
+    }
+
+    .letter-card p {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #4a3f10;
+      margin-bottom: 20px;
+    }
+
+    .letter-card .poem-text {
+      font-family: 'Caveat', cursive;
+      font-size: 1.65rem;
+      line-height: 1.45;
+      color: #8c5b00;
+      white-space: pre-line;
+      margin-bottom: 20px;
+    }
+
+    .letter-card .highlight {
+      font-weight: 700;
+      color: #b37400;
+    }
+
+    .btn-close {
+      background: #d48800;
+      color: #fff;
+      border: none;
+      padding: 10px 26px;
+      border-radius: 20px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    .btn-close:hover {
+      background: #b37400;
+    }
+
+    .sparkle {
+      position: absolute;
+      pointer-events: none;
+      font-size: 1.5rem;
+      animation: fadeSparkle 1s forwards ease-out;
+      z-index: 50;
+    }
+
+    @keyframes fadeSparkle {
+      0% { opacity: 1; transform: translate(0, 0) scale(0.5) rotate(0deg); }
+      100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.5) rotate(180deg); }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+  <!-- Elemento de audio para la música de fondo -->
+  <audio id="bg-music" src="ENAMORARME_129 kbps.m4a" loop preload="auto"></audio>
+
+  <div id="welcome-screen">
+    <h1 class="welcome-title">Mi regalo para ti con muchísimo amor ❤️</h1>
+    <button class="btn-start" onclick="startExperience()">Ver flores amarillas 🌻</button>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <button class="btn-letter" onclick="openLetter()">Abrir tu Carta de Amor 💌</button>
+
+  <div class="modal-overlay" id="letterModal">
+    <div class="letter-card">
+      <h2>Mi Universo Completo... 💛</h2>
+      <p>
+        Si el universo tuviera un centro perfecto, sin duda alguna serías tú. 
+        Estas flores amarillas giran como planetas en tu honor, porque tu luz, tu dulzura y tu amor 
+        son la gravedad que mantiene latiendo todo mi mundo.
+      </p>
+      <p class="highlight">
+        ¡Gracias por iluminar cada rincón de mi vida! ✨🌻
+      </p>
+      <button class="btn-close" onclick="closeModal('letterModal')">Guardar en el Corazón ❤️</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="poemModal">
+    <div class="letter-card">
+      <h2 id="poemTitle">Un Poema Para Ti 🌻</h2>
+      <div class="poem-text" id="poemContent"></div>
+      <button class="btn-close" onclick="closeModal('poemModal')">Un Beso Para Ti 💋</button>
+    </div>
+  </div>
+
+  <script>
+    const itemsData = [
+      { text: "Eres mi sol ☀️", poem: "Como el sol que despierta la mañana,\ntu sonrisa ilumina mi existir;\nsin tu luz mi alma estaría vana,\ntú eres la razón de mi vivir." },
+      { text: "Te amo 💖", poem: "Te amo en el silencio y en el viento,\nte amo en cada latido de mi corazón,\neres mi más hermoso pensamiento,\nmi paz, mi universo y mi pasión." },
+      { text: "Eres preciosa ✨", poem: "No hay estrella en el cielo encendida\nque brille la mitad de lo que tú brillas,\neres la flor más bella de la vida,\nque hace mi universo maravilla." },
+      { text: "Mi amor de mi vida 🌼", poem: "Entre millones de vidas te elegiría,\nentre mil universos te buscaría,\nporque eres tú mi dulce melodía,\nla única dueña de mi alegría." },
+      { text: "Me encantas 🥰", poem: "Me encanta la magia en tu mirada,\nel dulce refugio de tu voz,\nver que a tu lado no me falta nada,\nporque el amor florece entre los dos." },
+      { text: "Eres única 🌟", poem: "Eres un verso escrito en el cielo,\nun regalo divino y sin igual,\nen tus abrazos encuentro mi consuelo,\ny un amor eterno y celestial." },
+      { text: "Siempre juntos 💫", poem: "Tomados de la mano hacia el destino,\nsin importar la distancia ni el tiempo,\ntú eres la luz en mi camino,\nmi eterno y más dulce pensamiento." },
+      { text: "Eres mi todo 🌻", poem: "Eres el aire, la flor y la luz,\nel principio y el fin de mi cantar,\nmi universo entero eres tú,\na quien nunca dejaré de amar." },
+      { text: "Te adoro 💛", poem: "Te adoro en cada pequeño instante,\nen el suspiro suave que regalas,\neres mi joya pura y brillante,\nla brisa dulce que me da alas." },
+      { text: "Mi razón de ser 🌙", poem: "Si miro al firmamento en calma,\nveo tu rostro en cada estrella brillar,\neres la dueña absoluta de mi alma,\nmi eterno refugio y mi hogar." },
+      { text: "Mi lugar seguro 🏰", poem: "En tus brazos el mundo se detiene,\nla tormenta se vuelve calma y paz,\ntu amor es la fuerza que me sostiene,\nmi bien más preciado y eficaz." },
+      { text: "Luz de mis ojos 👁️✨", poem: "Verte es mirar el amanecer,\nes sentir la calidez del verano,\nlo más hermoso que me pudo suceder,\nes caminar contigo de la mano." },
+      { text: "Mi dulce sueño 💭", poem: "Soñarte es mi pasatiempo favorito,\ntenerte a mi lado es mi realidad,\neste amor que siento es infinito,\nlleno de ternura y verdad." },
+      { text: "Estrella fugaz ⭐", poem: "Pedí un deseo al cielo una noche,\ny el universo te trajo a mi lado,\ndesde entonces mi vida es un derroche\nde amor puro, sincero y enamorado." },
+      { text: "Mi girasol eterno 🌻", poem: "Giro siempre buscando tu mirada,\ncomo el girasol busca al resplandor,\neres mi reina, mi niña amada,\nel fruto bendito de nuestro amor." },
+      { text: "Melodía de mi alma 🎶", poem: "Tu voz es la música más suave,\nque calma cualquier tempestad,\neres el secreto que mi alma sabe,\nmi historia de amor y eternidad." },
+      { text: "Mi regalo del cielo 🎁", poem: "Agradezco a la vida cada segundo,\npor haber cruzado nuestro destino,\neres lo más valioso de este mundo,\nmi hermosa compañera de camino." },
+      { text: "Amor infinito ♾️", poem: "Ni midiendo las estrellas lejanas,\nse podría calcular este querer,\nte amaré hoy, mañana y las semanas,\nmientras vuelva a florecer y amanecer." },
+      { text: "Mi refugio de paz 🕊️", poem: "Tus palabras son bálsamo y calma,\ntus besos mi más dulce cantar,\ngrabada te llevo dentro del alma,\nmi razón eterna de amar." },
+      { text: "Mi poesía favorita 📜", poem: "No existen versos ni rimas bastantes,\npara describir lo que me haces sentir,\neres la obra de arte más radiante,\ncon la que siempre quiero vivir." },
+      { text: "Mi centro de gravedad 🌌", poem: "Como los planetas giran al sol,\nmi corazón solo orbita por ti,\neres el centro de mi resplandor,\nel amor con el que siempre soñé y creí." },
+      { text: "Mi destello dorado 💫", poem: "Un hilo de oro une nuestro amor,\nmás fuerte que cualquier distancia,\neres la calma, la fe y la flor,\nque perfuma mi alma con tu fragancia." },
+      { text: "Latido eterno 💓", poem: "Si mi corazón palpita contento,\nes porque lleva tu nombre grabado,\neres mi más hermoso pensamiento,\nel regalo más bello que me han dado." },
+      { text: "Mi constelación favorita 🌠", poem: "Dibujo tu nombre en el firmamento,\ncon luces de oro y flores amarillas,\neres la dueña de mi sentimiento,\nla que en mis noches más brilla." },
+      { text: "Mi primavera eterna 🌸", poem: "Contigo el invierno no tiene lugar,\ntodo florece cuando tú sonríes,\neres mi mar dulce donde quiero navegar,\nla flor que hace que mi alma viva y confíe." },
+      { text: "Mi tesoro sin precio 💎", poem: "Ni todo el oro de este universo,\nvale lo que vale un beso tuyo,\npor eso te dedico cada verso,\ny con orgullo tu amor construyo." },
+      { text: "Eterna luz 🕯️✨", poem: "En la noche más oscura y fría,\ntu amor es faro que me guía al puerto,\neres mi paz, mi dulce compañía,\nel sueño más lindo hecho cierto." },
+      { text: "Mi bendición 🕊️💛", poem: "Dios te hizo con perfecta dulzura,\ncon pétalos de luz y de amor profundo,\neres la más hermosa criatura,\nque adorna la faz de este mundo." },
+      { text: "Mi hogar en ti 🏠❤️", poem: "No importa el lugar en la tierra,\ndonde tú estés es mi verdadero hogar,\ntu abrazo sincero el dolor me destierra,\ny me invita por siempre a amar." },
+      { text: "Amor verdadero 💍✨", poem: "Un amor tan puro no se acaba jamás,\nflorece más vivo con cada amanecer,\ntú eres mi presente, mi futuro y mi más,\nla mujer que siempre voy a querer." },
+      { text: "Mi ángel de luz 👼✨", poem: "Caíste del cielo como un regalo,\ncon alas transparentes de amor y bondad,\nsi estoy a tu lado nada se hace malo,\neres mi refugio y mi felicidad." },
+      { text: "Mi dulce compañía 🧸💛", poem: "Tenerte cerca es abrazar la calma,\nes sentir que la vida es perfecta y bella,\ntú llenas de alegría toda mi alma,\neres mi dulce y radiantísima estrella." },
+      { text: "Mi sonrisa favorita 😁✨", poem: "Tu risa es la melodía que me cura,\nel remedio exacto para mi dolor,\nver tus ojos brillar de ternura\nes la prueba más linda del amor." },
+      { text: "Mi sueño cumplido 🌙☁️", poem: "Durante muchas noches le pedí al destino\nun amor sincero para compartir,\ny llegaste tú a cambiar mi camino,\nel regalo más hermoso para vivir." },
+      { text: "Mi latido dulce 💓🎶", poem: "Escucho mi pecho y susurra tu nombre,\ncada latido baila al ritmo de tu voz,\nno existe en la tierra un solo hombre\nmás afortunado que yo junto a los dos." },
+      { text: "Mi bello horizonte 🌅", poem: "Mirar el futuro contigo es un sueño,\nlleno de flores, calma y color,\neres la dueña y yo soy el dueño\nde este hermoso y eterno amor." },
+      { text: "Mi perla del alma 🐚💎", poem: "En el mar inmenso de la existencia\nencontré la gema de más alto valor,\ntu corazón puro y tu dulce presencia\nque me llenan siempre de resplandor." },
+      { text: "Mi pensamiento fijo 🧠💖", poem: "Desde que amanece hasta que cae el sol\ntu recuerdo se queda grabado en mi mente,\neres mi luz, mi dulce farol,\nque me guía con amor constante y presente." },
+      { text: "Mi paz perfecta 🕊️🌿", poem: "En un mundo ruidoso y acelerado\ntu abrazo es el único lugar de calma,\neres mi refugio y mi paz anhelada,\nque me llena de vida y de ternura el alma." },
+      { text: "Mi universo de amor 🌌✨", poem: "No existen galaxias ni estrellas suficientes\nque superen lo grande de este sentimiento,\nte amo con forces verdaderas y presentes\nen cada instante y segundo del tiempo." },
+      { text: "Mi pequeña gigante 👑💛", poem: "Tan delicada y dulce como una flor,\npero con la fuerza de un rayo de sol,\neres mi reina, mi verdadero amor,\nmi eterna guía y mi hermoso crisol." },
+      { text: "Mi destello de sol 🌞🌻", poem: "Incluso en los días fríos y nublados\ntu presencia trae el calor del verano,\nsomos dos almas por siempre conectados\ncaminando felices de la mano." },
+      { text: "Mi dulce locura 🤪💖", poem: "Amarte me hace volar sin alas,\nsoñar despierto en cualquier rincón,\ntú todas mis tristezas las instalas\nen la más profunda y dulce canción." },
+      { text: "Mi obra de arte 🎨🖼️", poem: "Pintada por el artista del firmamento\ncon los colores de la primavera y la luz,\neres el más perfecto pensamiento,\nmi mayor tesoro siempre serás tú." },
+      { text: "Mi puerto seguro ⚓🌊", poem: "Aunque las olas del mar se agiten\nen tus brazos siempre encuentro calma,\ntus besos mi felicidad permiten\ny le dan eterna ternura a mi alma." },
+      { text: "Mi latir constante 💓⏳", poem: "Pasan los minutos, las horas y los días\ny mi corazón no deja de repetirte,\nque eres tú la dueña de mis alegrías\ny que toda la vida voy a consentirte." },
+      { text: "Mi flor preferida 🌸👑", poem: "Entre miles de pétalos y colores\ntú destacas con brillo sin igual,\neres la reina de todas las flores,\nmi amor eterno, puro y celestial." },
+      { text: "Mi rayito de oro ⚡💛", poem: "Cruzaste mi vida como una luz radiante\niluminando lo que antes era oscuridad,\ndesde ese maravilloso instante\nconocí la verdadera felicidad." },
+      { text: "Mi canción eterna 🎼🎤", poem: "Tu nombre es la estrofa que siempre canto,\nla armonía suave que quiero escuchar,\nme enamoras con tu dulzura y tu encanto\ny nunca jamás te dejaré de amar." },
+      { text: "Mi cielo abierto 🌤️💖", poem: "Contigo no hay nubes ni tempestad,\ntodo es claridad, risa y armonía,\neres mi más hermosa realidad,\nmi fuente inagotable de alegría." },
+      { text: "Mi suspiro suave 🌬️💕", poem: "Cada vez que pienso en tu mirada\nun suspiro nace desde el corazón,\neres mi niña consentida y amada,\nel motivo verdadero de mi pasión." },
+      { text: "Mi brillo dorado 🌟✨", poem: "Caminas y dejas destellos de oro,\ntu luz transforma cualquier lugar,\neres mi más sagrado tesoro,\na quien siempre voy a cuidar." },
+      { text: "Mi refugio eterno 🏰💖", poem: "No necesito fortalezas ni muros\nsi tengo tus brazos para protegerme,\ncontigo los días son brillantes y seguros\ny es un regalo hermoso tenerte." },
+      { text: "Mi dulce fortuna 🪙💛", poem: "Rico no es quien tiene más riqueza,\nsino quien tiene tu amor verdadero,\ntu cariño es mi mayor nobleza,\neres lo único que en la vida quiero." },
+      { text: "Mi amor sublime 🕊️✨", poem: "Un sentimiento que no tiene frontera,\nque crece más allá de las estrellas,\ntú eres mi eterna primavera,\nla más hermosa entre las cosas bellas." },
+      { text: "Mi estrella guía 🧭⭐", poem: "Cuando la noche se torna oscura\ntu brillo me enseña el camino a seguir,\neres mi calma, mi paz y mi dulzura,\nmi razón preferida para sonreír." },
+      { text: "Mi dulce mirada 👀💛", poem: "Perder me en tus ojos es mi pasatiempo,\nver en ellos la pureza del amor,\ncontigo se detiene el mismísimo tiempo\ny florece en el pecho la mejor flor." },
+      { text: "Mi brisa de mar 🌊🌬️", poem: "Fresca, suave y llena de vida,\nasí es la caricia que me regalas,\neres mi niña hermosa y preferida,\nla que a mis sueños le pone alas." },
+      { text: "Mi amor infinito ♾️💖", poem: "Mido mi amor en pasos y en estrellas\ny descubro que no tiene un final,\ntodas las cosas divinas y bellas\nquedan pequeñas ante tu brillo especial." },
+      { text: "Mi latir dorado 💓🌻", poem: "Llevas el color del sol en tu alma,\nla alegría pura que todo lo sana,\ntu presencia me regala dulce calma\ny la ilusión de un hermoso mañana." },
+      { text: "Mi pedazo de cielo ☁️✨", poem: "Dios tomó un pedacito de firmamento\ny lo transformó en tu ser tan radiante,\neres mi más dulce pensamiento,\nmi amor constante y fascinante." },
+      { text: "Mi llama encendida 🔥❤️", poem: "El fuego de tu amor calienta mi pecho,\nme llena de vida, fuerza y pasión,\nsaber que me amas me deja satisfecho\ny alegra cada rincón de mi corazón." },
+      { text: "Mi poesía viva 📜🖋️", poem: "Cada gesto tuyo es un verso perfecto,\ncada sonrisa una rima de amor,\nen ti todo es hermoso y afecto,\neres mi mundo y mi mejor color." },
+      { text: "Mi perla de luz 🐚⭐", poem: "En lo profundo del alma te guardo\ncomo el tesoro más fino y sagrado,\npor tu cariño sin duda no tardo\nen dar gracias por estar a tu lado." },
+      { text: "Mi sol de tarde 🌅💛", poem: "Cálido, suave y lleno de encanto,\ncomo los tonos dorados del atardecer,\namarte a ti me fascina tanto\nque a tu lado siempre quiero crecer." },
+      { text: "Mi dulce encanto ✨👑", poem: "Tienes la magia de hacerme feliz\ncon solo pronunciar una palabra,\neres la flor que echa raíz\ny mi alma a la alegría desabra." },
+      { text: "Mi melodía de paz 🎻🎼", poem: "Escuchar tu voz calma la tormenta,\nhace que el mundo se vuelva un jardín,\ntu amor mi espíritu siempre alimenta\ncon un cariño dulce y sin fin." },
+      { text: "Mi abrazo favorito 🫂💖", poem: "Acurrucarme en tu pecho es el hogar,\nel sitio más cálido de este planeta,\nallí no hay tristezas que lamentar\ny mi felicidad se vuelve completa." },
+      { text: "Mi luz matutina 🌄🌻", poem: "Despertar y saber que existes en mi vida\nes el impulso para cada jornada,\neres mi niña hermosa y querida,\nmi bendición más esperada." },
+      { text: "Mi regalo eterno 🎁✨", poem: "La vida me dio el mejor presente\nal cruzar tus pasos con los míos,\namarte para siempre es mi promesa presente\nque aleja los miedos y todos los fríos." },
+      { text: "Mi dulce constelación 🌌⭐", poem: "Uní tus pecas con líneas de luz\ny formé el mapa de mi universo,\nla única dueña de mi alma eres tú,\na quien dedico cada poema y verso." },
+      { text: "Mi reina del jardín 👑🌹", poem: "Podrán existir mil flores hermosas\npero ninguna se compara contigo,\neres la más bella de las rosas\ny mi más dulce y eterno abrigo." },
+      { text: "Mi pensamiento dulce 💭💖", poem: "Sonrío a la nada cuando te recuerdo,\nme lleno de paz con tu memoria,\nen este amor feliz me pierdo\ny escribimos juntos la mejor historia." },
+      { text: "Mi faro brillante 🕯️⚓", poem: "Guias mis pasos en la marea,\nme das seguridad en cada decisión,\nhaces que todo en la vida florezca y sea\nuna eterna y hermosa canción." },
+      { text: "Mi pedazo de sol ☀️🌻", poem: "Llevas en la risa la luz del día,\nel brillo cálido del resplandor,\neres mi eterna y dulce alegría,\nla dueña absoluta de mi amor." },
+      { text: "Mi magia pura 🪄✨", poem: "Sin varitas ni trucos me enamoraste,\nsolo con la verdad de tu corazón,\ndesde el primer día me cautivaste\ny me llenaste de ilusión y pasión." },
+      { text: "Mi luna de queso 🌙🧀", poem: "Dulce, brillante y siempre velando\npor mis sueños en la oscuridad,\npor ti mi alma vive cantando\nllena de amor y felicidad." },
+      { text: "Mi amor eterno 💍💖", poem: "Prometo cuidarte en cada segundo,\nser tu apoyo, tu amigo y tu abrigo,\neres lo más sagrado de este mundo\ny quiero siempre estar contigo." },
+      { text: "Mi destello de paz 🕊️⭐", poem: "Tranquilidad pura es lo que me das,\nun mar calmado donde descansar,\nsé que conmigo siempre estarás\ny nunca de amarte voy a parar." },
+      { text: "Mi niña de luz 👧✨", poem: "Inocente, dulce y llena de vida,\ncon un corazón de oro brillante,\neres mi persona más querida,\nmi amor eterno y constante." },
+      { text: "Mi canción del alma 🎵❤️", poem: "Se escucha bajito en cada latido,\nun coro de amor que dice tu nombre,\nsaber que me amas le da sentido\na la vida entera de este hombre." },
+      { text: "Mi tesoro oculto 💎🗺️", poem: "Hallé en tu pecho la mayor riqueza,\nun amor sincero, puro y leal,\neres mi alegría y mi nobleza,\nmi sueño divino y celestial." },
+      { text: "Mi dulce refugio 🏰🌿", poem: "Donde no entra la pena ni el dolor,\ndonde todo es abrazo y ternura,\ntus brazos son mi castillo de amor\nlleno de paz y de dulzura." },
+      { text: "Mi luz de luna 🌙✨", poem: "Iluminas las noches con suave brillo,\nhaces que la penumbra se vuelva encanto,\ntener tu amor es hermoso y sencillo\ny por eso te adoro tanto." },
+      { text: "Mi pedacito de vida 💓🌱", poem: "Eres la savia que me hace crecer,\nel agua fresca que calma mi sed,\nlo mejor que me pudo suceder\nes haber caído en tu dulce red." },
+      { text: "Mi estrella de oro 🌟💛", poem: "Reluces en lo alto de mi firmamento,\nresaltas entre todas las demás,\neres mi permanente pensamiento\nque no se borrará jamás." },
+      { text: "Mi poesía favorita 📜💖", poem: "Leo tus ojos y encuentro verdades,\nversos de amor escritos con luz,\nen medio de tantas ciudades\nmi único destino eres tú." },
+      { text: "Mi sueño de primavera 🌸☀️", poem: "Llegaste a mi vida a hacer florecer\nlos campos secos de mi corazón,\ncontigo todo vuelve a nacer\nlleno de magia, fe y emoción." },
+      { text: "Mi dulce abrigo 🧥💓", poem: "En los días fríos tu amor me calienta,\nme abraza el pecho con suavidad,\ntu ternura mi vida alimenta\ny me llena de profunda paz." },
+      { text: "Mi ángel guardián 👼💖", poem: "Cuidas mis pasos con delicadeza,\nme regalas sonrisas de bondad,\neres mi fuerza y mi belleza,\nmi amor por toda la eternidad." },
+      { text: "Mi centro de paz 🧘‍♂️💛", poem: "En el medio de la tempestad\ntu mano me sostiene con firmeza,\neres mi única y dulce verdad,\nmi mayor tesoro y grandeza." },
+      { text: "Mi risa preferida 😄✨", poem: "Ese sonido alegre que regalas\nes el motor que impulsa mi día,\na mis sentimientos le pones alas\ny me llenas de completa alegría." },
+      { text: "Mi verso de amor ✍️❤️", poem: "Escribo tu nombre en cada rincón,\ncon letras de fuego y de resplandor,\neres la dueña de mi corazón,\nel motivo verdadero de mi amor." },
+      { text: "Mi dulce destino 🧭💖", poem: "Todos mis caminos me llevan a ti,\nno importa la ruta que decida tomar,\ndesde el primer día en que te vi\nsupe que siempre te iba a amar." },
+      { text: "Mi flor de sol 🌻🌞", poem: "Giro mis días hacia tu luz,\nbuscando el calor de tu mirar,\nmi mayor bendición eres tú\na quien nunca dejaré de adorar." },
+      { text: "Mi eterno amor 💍✨", poem: "Miro al futuro y nos veo juntitos,\ncaminando con fe y con ilusión,\nnuestros latidos unidos y bonitos\nen una sola y bella canción." },
+      { text: "Mi rayo de paz ⚡🕊️", poem: "Atraviesas mi alma con suavidad,\neliminas el miedo y la duda,\neres mi hermosa realidad,\nla respuesta a mi oración enmudecida." },
+      { text: "Mi tesoro de oro 🪙💛", poem: "Vale más tu sonrisa que el universo,\nmás que todo el oro de la creación,\npor eso te dedico cada verso\ny te entrego entero mi corazón." },
+      { text: "Mi luz infinita 🕯️✨", poem: "Un fuego sagrado que no se apaga,\nque arde con fuerza y dulce calor,\ntu cariño el dolor me apaga\ny me llena de un eterno amor." },
+      { text: "Mi todo completo 🌌👑", poem: "Cierro los ojos y estás presente,\nlos abro y te veo en mi realidad,\neres mi pasado, mi futuro y mi presente,\nmi vida entera y mi felicidad." }
+    ];
+
+    const flowerIcons = ["🌻", "🌼", "💐", "✨", "🌸", "⭐", "🌺"];
+
+    let scene, camera, renderer;
+    let systemGroup, coreHeartMesh;
+    const orbitingPlanets = [];
+    const interactiveObjects = [];
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    let isDragging = false;
+    let previousTouchPos = { x: 0, y: 0 };
+    let dragDistance = 0;
+    let pointerDownPos = { x: 0, y: 0 };
+
+    let initialPinchDistance = null;
+    let targetCameraDistance = 55;
+
+    function startExperience() {
+      document.getElementById('welcome-screen').classList.add('hidden');
+      
+      // Reproducir la música de fondo al presionar el botón de inicio
+      const audio = document.getElementById('bg-music');
+      if (audio) {
+        audio.play().catch(error => console.log("Audio play error: ", error));
+      }
+    }
+
+    function init() {
+      const container = document.getElementById('canvas-container');
+
+      scene = new THREE.Scene();
+
+      camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 2000);
+      camera.position.set(0, 22, targetCameraDistance);
+      camera.lookAt(0, 0, 0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+      scene.add(ambientLight);
+
+      const centerLight = new THREE.PointLight(0xff1133, 3, 120);
+      centerLight.position.set(0, 0, 0);
+      scene.add(centerLight);
+
+      createDeepSpaceGalaxy();
+
+      systemGroup = new THREE.Group();
+      systemGroup.rotation.x = 0.35;
+      scene.add(systemGroup);
+
+      createCoreHeart();
+
+      createSolarSystem();
+
+      const dom = renderer.domElement;
+
+      dom.addEventListener('pointerdown', onPointerDown);
+      dom.addEventListener('pointermove', onPointerMove);
+      dom.addEventListener('pointerup', onPointerUp);
+      dom.addEventListener('pointercancel', onPointerUp);
+
+      dom.addEventListener('touchstart', onTouchStart, { passive: false });
+      dom.addEventListener('touchmove', onTouchMove, { passive: false });
+      dom.addEventListener('touchend', onTouchEnd);
+
+      window.addEventListener('wheel', onWheel, { passive: false });
+      window.addEventListener('resize', onWindowResize);
+    }
+
+    function createDeepSpaceGalaxy() {
+      const starCount = 900;
+      const starGeo = new THREE.BufferGeometry();
+      const starPos = new Float32Array(starCount * 3);
+
+      for (let i = 0; i < starCount * 3; i += 3) {
+        starPos[i] = (Math.random() - 0.5) * 800;
+        starPos[i + 1] = (Math.random() - 0.5) * 800;
+        starPos[i + 2] = -150 - Math.random() * 400;
+      }
+
+      starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+      const starMat = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 1.2,
+        transparent: true,
+        opacity: 0.65,
+        depthTest: false
+      });
+      const stars = new THREE.Points(starGeo, starMat);
+      stars.renderOrder = -2;
+      scene.add(stars);
+
+      const auroraCount = 500;
+      const auroraGeo = new THREE.BufferGeometry();
+      const auroraPos = new Float32Array(auroraCount * 3);
+      const auroraColors = new Float32Array(auroraCount * 3);
+
+      const palette = [
+        new THREE.Color(0xff1493),
+        new THREE.Color(0xffd700),
+        new THREE.Color(0x9400d3)
+      ];
+
+      for (let i = 0; i < auroraCount; i++) {
+        const radius = Math.random() * 180 + 90;
+        const angle = Math.random() * Math.PI * 2;
+        const y = (Math.random() - 0.5) * 60;
+
+        auroraPos[i * 3] = radius * Math.cos(angle);
+        auroraPos[i * 3 + 1] = y;
+        auroraPos[i * 3 + 2] = -100 + radius * Math.sin(angle);
+
+        const color = palette[Math.floor(Math.random() * palette.length)];
+        auroraColors[i * 3] = color.r;
+        auroraColors[i * 3 + 1] = color.g;
+        auroraColors[i * 3 + 2] = color.b;
+      }
+
+      auroraGeo.setAttribute('position', new THREE.BufferAttribute(auroraPos, 3));
+      auroraGeo.setAttribute('color', new THREE.BufferAttribute(auroraColors, 3));
+
+      const auroraMat = new THREE.PointsMaterial({
+        size: 3.5,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.3,
+        blending: THREE.AdditiveBlending,
+        depthTest: false
+      });
+
+      const auroraField = new THREE.Points(auroraGeo, auroraMat);
+      auroraField.renderOrder = -1;
+      scene.add(auroraField);
+    }
+
+    function createCoreHeart() {
+      const heartShape = new THREE.Shape();
+      const x = 0, y = 0;
+      heartShape.moveTo(x + 0.25, y + 0.25);
+      heartShape.bezierCurveTo(x + 0.25, y + 0.25, x + 0.2, y, x, y);
+      heartShape.bezierCurveTo(x - 0.3, y, x - 0.3, y + 0.35, x - 0.3, y + 0.35);
+      heartShape.bezierCurveTo(x - 0.3, y + 0.55, x - 0.1, y + 0.77, x + 0.25, y + 0.95);
+      heartShape.bezierCurveTo(x + 0.6, y + 0.77, x + 0.8, y + 0.55, x + 0.8, y + 0.35);
+      heartShape.bezierCurveTo(x + 0.8, y + 0.35, x + 0.8, y, x + 0.5, y);
+      heartShape.bezierCurveTo(x + 0.35, y, x + 0.25, y + 0.25, x + 0.25, y + 0.25);
+
+      const extrudeSettings = { depth: 0.4, bevelEnabled: true, bevelSegments: 5, steps: 1, bevelSize: 0.15, bevelThickness: 0.15 };
+      const geometry = new THREE.ExtrudeGeometry(heartShape, extrudeSettings);
+      geometry.center();
+
+      const material = new THREE.MeshPhongMaterial({
+        color: 0xff0000,
+        emissive: 0x990000,
+        shininess: 130,
+        specular: 0xff8888
+      });
+
+      coreHeartMesh = new THREE.Mesh(geometry, material);
+      coreHeartMesh.scale.set(4.5, 4.5, 4.5);
+      coreHeartMesh.rotation.x = Math.PI;
+      coreHeartMesh.position.set(0, 0, 0);
+      coreHeartMesh.userData = { isHeart: true };
+
+      const glowCanvas = document.createElement('canvas');
+      glowCanvas.width = 128;
+      glowCanvas.height = 128;
+      const gCtx = glowCanvas.getContext('2d');
+
+      const gradient = gCtx.createRadialGradient(64, 64, 0, 64, 64, 64);
+      gradient.addColorStop(0, 'rgba(255, 20, 20, 0.85)');
+      gradient.addColorStop(0.35, 'rgba(255, 60, 60, 0.4)');
+      gradient.addColorStop(0.7, 'rgba(255, 120, 120, 0.1)');
+      gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+      gCtx.fillStyle = gradient;
+      gCtx.fillRect(0, 0, 128, 128);
+
+      const glowTexture = new THREE.CanvasTexture(glowCanvas);
+      const glowMaterial = new THREE.SpriteMaterial({
+        map: glowTexture,
+        transparent: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+      });
+
+      const glowSprite = new THREE.Sprite(glowMaterial);
+      glowSprite.scale.set(16, 16, 1);
+      coreHeartMesh.add(glowSprite);
+
+      systemGroup.add(coreHeartMesh);
+      interactiveObjects.push(coreHeartMesh);
+    }
+
+    function createSolarSystem() {
+      const numOrbits = 14; 
+      const itemsPerOrbit = Math.ceil(itemsData.length / numOrbits);
+      let itemIndex = 0;
+
+      for (let o = 0; o < numOrbits; o++) {
+        const radius = 8 + o * 3.6;
+        const speed = (0.00035 + (numOrbits - o) * 0.00008) * (o % 2 === 0 ? 1 : -1);
+        const count = (o === numOrbits - 1) ? itemsData.length - itemIndex : itemsPerOrbit;
+
+        for (let i = 0; i < count; i++) {
+          if (itemIndex >= itemsData.length) break;
+
+          const data = itemsData[itemIndex];
+          const angle = (i / count) * Math.PI * 2 + (o * 0.55);
+          const icon = flowerIcons[itemIndex % flowerIcons.length];
+
+          const canvas = document.createElement('canvas');
+          canvas.width = 340;
+          canvas.height = 120;
+          const ctx = canvas.getContext('2d');
+
+          const bgGlow = ctx.createRadialGradient(170, 60, 0, 170, 60, 130);
+          bgGlow.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
+          bgGlow.addColorStop(0.45, 'rgba(245, 248, 255, 0.22)');
+          bgGlow.addColorStop(1, 'rgba(255, 255, 255, 0)');
+          
+          ctx.fillStyle = bgGlow;
+          ctx.beginPath();
+          ctx.arc(170, 60, 130, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.font = '36px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(icon, 170, 42);
+
+          ctx.font = 'bold 19px Montserrat, sans-serif';
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(255, 255, 255, 1)';
+          ctx.shadowBlur = 14;
+          ctx.fillText(data.text, 170, 80);
+
+          const texture = new THREE.CanvasTexture(canvas);
+          const spriteMaterial = new THREE.SpriteMaterial({ 
+            map: texture, 
+            transparent: true,
+            depthTest: true
+          });
+          
+          const sprite = new THREE.Sprite(spriteMaterial);
+          sprite.scale.set(6.2, 2.3, 1);
+
+          const pivot = new THREE.Group();
+          systemGroup.add(pivot);
+
+          const heightOffset = (itemIndex % 3 - 1) * 1.8;
+          sprite.position.set(radius * Math.cos(angle), heightOffset, radius * Math.sin(angle));
+          sprite.userData = { title: data.text, poem: data.poem, isFlower: true };
+
+          pivot.add(sprite);
+          pivot.userData = { speed: speed };
+
+          orbitingPlanets.push(pivot);
+          interactiveObjects.push(sprite);
+
+          itemIndex++;
+        }
+      }
+    }
+
+    function onPointerDown(event) {
+      if (event.pointerType === 'touch' && !event.isPrimary) return;
+      isDragging = true;
+      dragDistance = 0;
+      pointerDownPos = { x: event.clientX, y: event.clientY };
+      previousTouchPos = { x: event.clientX, y: event.clientY };
+    }
+
+    function onPointerMove(event) {
+      if (!isDragging) return;
+
+      const deltaX = event.clientX - previousTouchPos.x;
+      const deltaY = event.clientY - previousTouchPos.y;
+
+      dragDistance += Math.hypot(event.clientX - pointerDownPos.x, event.clientY - pointerDownPos.y);
+
+      systemGroup.rotation.y += deltaX * 0.004;
+      systemGroup.rotation.x += deltaY * 0.002;
+      systemGroup.rotation.x = Math.max(0.05, Math.min(Math.PI / 2.1, systemGroup.rotation.x));
+
+      previousTouchPos = { x: event.clientX, y: event.clientY };
+    }
+
+    function onPointerUp(event) {
+      isDragging = false;
+
+      if (dragDistance > 8) return;
+
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(interactiveObjects);
+
+      if (intersects.length > 0) {
+        const object = intersects[0].object;
+        createBurst(event.clientX, event.clientY);
+
+        if (object.userData.isHeart) {
+          openLetter();
+        } else if (object.userData.isFlower) {
+          showPoem(object.userData.title, object.userData.poem);
+        }
+      }
+    }
+
+    function onTouchStart(e) {
+      if (e.touches.length === 2) {
+        initialPinchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+      }
+    }
+
+    function onTouchMove(e) {
+      if (e.touches.length === 2 && initialPinchDistance) {
+        e.preventDefault();
+        const currentDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const diff = initialPinchDistance - currentDistance;
+        targetCameraDistance += diff * 0.09;
+        targetCameraDistance = Math.max(20, Math.min(110, targetCameraDistance));
+        initialPinchDistance = currentDistance;
+      }
+    }
+
+    function onTouchEnd(e) {
+      if (e.touches.length < 2) {
+        initialPinchDistance = null;
+      }
+    }
+
+    function onWheel(e) {
+      e.preventDefault();
+      targetCameraDistance += e.deltaY * 0.05;
+      targetCameraDistance = Math.max(20, Math.min(110, targetCameraDistance));
+    }
+
+    let clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const elapsedTime = clock.getElapsedTime();
+
+      camera.position.z += (targetCameraDistance - camera.position.z) * 0.08;
+
+      orbitingPlanets.forEach(pivot => {
+        pivot.rotation.y += pivot.userData.speed;
+      });
+
+      if (coreHeartMesh) {
+        const pulse = 4.5 + Math.sin(elapsedTime * 2.0) * 0.22;
+        coreHeartMesh.scale.set(pulse, pulse, pulse);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function openLetter() {
+      document.getElementById('letterModal').classList.add('active');
+    }
+
+    function showPoem(title, poem) {
+      document.getElementById('poemTitle').innerText = title;
+      document.getElementById('poemContent').innerText = poem;
+      document.getElementById('poemModal').classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function createBurst(x, y) {
+      const symbols = ["✨", "🌻", "💖", "⭐", "❤️", "🌸", "🌠"];
+      for (let i = 0; i < 9; i++) {
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle';
+        sparkle.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+        sparkle.style.left = `${x}px`;
+        sparkle.style.top = `${y}px`;
+
+        const dx = (Math.random() - 0.5) * 180;
+        const dy = (Math.random() - 0.5) * 180;
+        
+        sparkle.style.setProperty('--dx', `${dx}px`);
+        sparkle.style.setProperty('--dy', `${dy}px`);
+
+        document.body.appendChild(sparkle);
+
+        setTimeout(() => {
+          sparkle.remove();
+        }, 1000);
+      }
+    }
+
+    init();
+    animate();
+  </script>
+</body>
+</html>
